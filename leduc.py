@@ -99,7 +99,7 @@ class Kunh:
             reward = self.get_reward(history.history, card_player, card_opponent, community_card)
             return reward
 
-        node = self.get_node(player_card, history.history)
+        node = self.get_node(player_card, history)
         strategy = node.strategy
 
         # Counterfactual utility per action.
@@ -218,13 +218,13 @@ class Kunh:
 
 
 
-    def get_node(self, card, history):
-
+    def get_node(self, card, hist):
+        history = hist.history
         key = str(card) + " " + history
         if key not in self.nodeMap:
             # get_options(history)
             action_dict = self.get_options(history)
-            info_set = Node(key, action_dict)
+            info_set = Node(key, action_dict, hist)
             self.nodeMap[key] = info_set
             return info_set
         return self.nodeMap[key]
@@ -264,8 +264,9 @@ class History:
 
 
 class Node:
-    def __init__(self, key, action_dict):
+    def __init__(self, key, action_dict, hist):
         self.key = key
+        self.hist = hist
         self.n_actions = len(action_dict.keys())
         self.regret_sum = np.zeros(self.n_actions)
         self.strategy_sum = np.zeros(self.n_actions)
@@ -311,17 +312,17 @@ def display_results(ev, i_map):
     print()
     print('player 1 strategies:')
     sorted_items = sorted(i_map.items(), key=lambda x: x[0])
-    for _, v in filter(lambda x: len(x[0]) % 2 == 0, sorted_items):
+    for _, v in filter(lambda x: len(x[1].hist.round_history) % 2 == 0, sorted_items):
         print(v)
     print()
     print('player 2 strategies:')
-    for _, v in filter(lambda x: len(x[0]) % 2 == 1, sorted_items):
+    for _, v in filter(lambda x: len(x[1].hist.round_history) % 2 == 1, sorted_items):
         print(v)
 
 
 if __name__ == "__main__":
     time1 = time.time()
     trainer = Kunh()
-    trainer.train(n_iterations=25000)
+    trainer.train(n_iterations=8000)
     print(abs(time1 - time.time()))
     print(sys.getsizeof(trainer))
