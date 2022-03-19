@@ -87,8 +87,9 @@ class Kunh:
         display_results(expected_game_value, self.nodeMap)
 
     def cfr(self, history, pr_1, pr_2):
-        n = len(history.history)
-        is_player_1 = n % 2 == 0
+        # n = len(history.history)
+        # is_player_1 = n % 2 == 0
+        is_player_1 = history.player_1
         player_card = self.deck[0] if is_player_1 else self.deck[1]
         community_card = self.deck[2]
 
@@ -157,9 +158,9 @@ class Kunh:
         double_raise = history[-2:] == 'rr'
         # call, fold
 
-        if _raise and not (double_raise):
+        if _raise and not (double_raise or check_raise):
             return {0: 'f', 1: 'c', 2: 'r'}
-        if double_raise:
+        if double_raise or check_raise:
             return {0: 'f', 1: 'c'}
         else:
             return {0: 'p', 1: 'r'}
@@ -237,17 +238,26 @@ class History:
         if prev_history == None:
             self.round = 1
             self.history = ''
+            self.round_history = ''
+            self.player_1 = True
         else:
             self.history = prev_history.history
             self.round = prev_history.round
+            self.round_history = prev_history.round_history
+            self.player_1 = prev_history.player_1
+
 
     def get_round (self):
-        if self.history[-1:] == 'c' or self.history[-2:] == 'pp':
+        if self.round_history[-1:] == 'c' or self.round_history[-2:] == 'pp':
             self.round += 1
+            self.round_history = ''
+            self.player_1 = True
 
     def add_history(self, move):
         new_history = copy.deepcopy(self)
         new_history.history = self.history + move
+        new_history.round_history = self.round_history + move
+        new_history.player_1 = not self.player_1
         new_history.get_round()
         return History(new_history)
 
